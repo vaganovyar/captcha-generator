@@ -4,14 +4,18 @@ import numpy as np
 
 
 def make_capthca(text, color="green", src=None, size=30, resolution=(120, 60), step=30, noize=255, chance=0.5):
+
+    # Make image for drawing on it
     img = Image.new("RGBA", resolution, "white")
-    font = ImageFont.truetype("arial.ttf", size=size)
     now = 1
 
+    # Make data
     data = {"label": text}
     positions = {}
 
+    # Draw symbol and update data
     for symbol in text:
+        font = ImageFont.truetype("arial.ttf", size=randint(size - 10, size))
         width, height = font.getsize(symbol)
         img2 = Image.new("RGBA", (width, height), "white")
         draw2 = ImageDraw.Draw(img2)
@@ -28,12 +32,14 @@ def make_capthca(text, color="green", src=None, size=30, resolution=(120, 60), s
 
         now += randint(height, height + step)
 
+    # Draw lines
     width, height = img.size
     for i in range(randint(1, 5)):
         draw = ImageDraw.Draw(img)
         draw.line((randint(1, width), randint(1, height), randint(1, width), randint(1, height)), width=randint(1, 5),
                   fill=color)
 
+    # Make some noize
     img = np.asarray(img)
     img = img.copy()
     img.setflags(write=1)
@@ -44,10 +50,10 @@ def make_capthca(text, color="green", src=None, size=30, resolution=(120, 60), s
                 pixel[1] = (pixel[1] + randint(-noize, noize)) % 256
                 pixel[2] = (pixel[2] + randint(-noize, noize)) % 256
 
+    # Update data
     img = Image.fromarray(img)
     if src:
         img.save(src)
-
     data["symbols"] = positions
     data["image"] = np.asarray(img)
 
