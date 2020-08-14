@@ -2,13 +2,16 @@ from PIL import Image, ImageDraw, ImageFont
 from random import randint
 import numpy as np
 
-def make_capthca(src, text, color, size=30, resolution=(120, 60), step=30, noize=255, chance=0.5):
-    img = Image.new("RGBA", resolution,"white")
+
+def make_capthca(text, color="green", src=None, size=30, resolution=(120, 60), step=30, noize=255, chance=0.5):
+    img = Image.new("RGBA", resolution, "white")
     font = ImageFont.truetype("arial.ttf", size=size)
     now = 1
 
-    for symbol in text:
+    data = {"label": text}
+    positions = {}
 
+    for symbol in text:
         width, height = font.getsize(symbol)
         img2 = Image.new("RGBA", (width, height), "white")
         draw2 = ImageDraw.Draw(img2)
@@ -18,12 +21,18 @@ def make_capthca(src, text, color, size=30, resolution=(120, 60), step=30, noize
         sx, sy = img2.size
         img.paste(img2, (now, y, now + sx, y + sy), img2)
 
+        try:
+            positions[symbol].append([now, y, now + sx, y + sy])
+        except:
+            positions[symbol] = [[now, y, now + sx, y + sy]]
+
         now += randint(height, height + step)
 
     width, height = img.size
     for i in range(randint(1, 5)):
         draw = ImageDraw.Draw(img)
-        draw.line((randint(1, width), randint(1, height), randint(1, width), randint(1, height)), width=randint(1, 5), fill=color)
+        draw.line((randint(1, width), randint(1, height), randint(1, width), randint(1, height)), width=randint(1, 5),
+                  fill=color)
 
     img = np.asarray(img)
     img = img.copy()
@@ -36,11 +45,16 @@ def make_capthca(src, text, color, size=30, resolution=(120, 60), step=30, noize
                 pixel[2] = (pixel[2] + randint(-noize, noize)) % 256
 
     img = Image.fromarray(img)
-    img.save(src)
+    if src:
+        img.save(src)
 
-    return np.asarray(img)
+    data["symbols"] = positions
+    data["image"] = np.asarray(img)
+
+    return data
+
 
 """debugging"""
 """
-print(make_capthcha("test.png", "test", "green", 30, (120, 60), 5, 255, 10))
+print(make_capthca("test", "green", "test.png",  30, (120, 60), 5, 255, 10))
 """
