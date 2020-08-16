@@ -3,17 +3,18 @@ from random import randint
 import numpy as np
 
 
-def make_capthca(text, color="green", src=None, size=30, resolution=(120, 60), step=30, noize=255, chance=0.5):
+def make_capthca(text, color="green", src=None, size=30, resolution=(120, 60), step=30, noise=255, chance=10):
 
     # Make image for drawing on it
     img = Image.new("RGBA", resolution, "white")
     now = 1
 
     # Make data
-    data = {"label": text}
+    data = {}
     positions = {}
 
     # Draw symbol and update data
+    end_text = ""
     for symbol in text:
         font = ImageFont.truetype("arial.ttf", size=randint(size - 10, size))
         width, height = font.getsize(symbol)
@@ -23,14 +24,20 @@ def make_capthca(text, color="green", src=None, size=30, resolution=(120, 60), s
         img2 = img2.rotate(randint(-90, 90), expand=1)
         y = randint(0, resolution[1] - height)
         sx, sy = img2.size
-        img.paste(img2, (now, y, now + sx, y + sy), img2)
 
-        try:
-            positions[symbol].append([now, y, now + sx, y + sy])
-        except:
-            positions[symbol] = [[now, y, now + sx, y + sy]]
+        if now + sx <= resolution[0] and y + sy <= resolution[1]:
+            img.paste(img2, (now, y, now + sx, y + sy), img2)
+            end_text += symbol
 
-        now += randint(height, height + step)
+            try:
+                positions[symbol].append([now, y, now + sx, y + sy])
+            except:
+                positions[symbol] = [[now, y, now + sx, y + sy]]
+
+            now += randint(height, height + step)
+
+    text = end_text
+    data["label"] = text
 
     # Draw lines
     width, height = img.size
@@ -46,9 +53,9 @@ def make_capthca(text, color="green", src=None, size=30, resolution=(120, 60), s
     for line in img:
         for pixel in line:
             if randint(0, 100) < chance:
-                pixel[0] = (pixel[0] + randint(-noize, noize)) % 256
-                pixel[1] = (pixel[1] + randint(-noize, noize)) % 256
-                pixel[2] = (pixel[2] + randint(-noize, noize)) % 256
+                pixel[0] = (pixel[0] + randint(-noise, noise)) % 256
+                pixel[1] = (pixel[1] + randint(-noise, noise)) % 256
+                pixel[2] = (pixel[2] + randint(-noise, noise)) % 256
 
     # Update data
     img = Image.fromarray(img)
@@ -62,5 +69,12 @@ def make_capthca(text, color="green", src=None, size=30, resolution=(120, 60), s
 
 """debugging"""
 """
-print(make_capthca("test", "green", "test.png",  30, (120, 60), 5, 255, 10))
+print(make_capthca("test012",
+                   "green",
+                   "test.png",
+                   size=30,
+                   resolution=(120, 60),
+                   step=1,
+                   noise=255,
+                   chance=10))
 """
